@@ -12,8 +12,10 @@
 """
 
 import graphene
+from graphene import relay, ObjectType
 from graphene_django import DjangoObjectType
 from django.db.models import Q
+from graphene_django.filter import DjangoFilterConnectionField
 
 from .models import Link, Vote
 from users.schema import UserType
@@ -29,36 +31,6 @@ class VoteType(DjangoObjectType):
         model = Vote
 
 
-####-------------------Query---------------------------####
-class Query(graphene.ObjectType):
-    links = graphene.List(
-        LinkType,
-        search=graphene.String(),
-        first=graphene.Int(),
-        skip=graphene.Int(),)
-    votes = graphene.List(VoteType)
-
-    def resolve_links(self, info, search=None, first=None, skip=None, **kwargs):
-        qs = Link.objects.all()
-
-        if search:
-            filter = (
-                Q(url__icontains=search) | Q(description__icontains=search))
-            
-            qs = qs.filter(filter)
-        if skip:
-            qs = qs[skip::]
-        
-        if first:
-            qs = qs[:first]
-
-        return qs
-
-    def resolve_votes(self, info, **kwargs):
-        return Vote.objects.all()
-
-
-####------------------Mutations----------------------#####
 class CreateLink(graphene.Mutation):
     id = graphene.Int()
     url = graphene.String()
@@ -105,6 +77,34 @@ class CreateVote(graphene.Mutation):
             link=link,
         )
         return CreateVote(user=user, link=link)
+
+
+class Query(graphene.ObjectType):
+    links = graphene.List(
+        LinkType,
+        search=graphene.String(),
+        first=graphene.Int(),
+        skip=graphene.Int(),)
+    votes = graphene.List(VoteType)
+
+    def resolve_links(self, info, search=None, first=None, skip=None, **kwargs):
+        qs = Link.objects.all()
+
+        if search:
+            filter = (
+                Q(url__icontains=search) | Q(description__icontains=search))
+            
+            qs = qs.filter(filter)
+        if skip:
+            qs = qs[skip::]
+        
+        if first:
+            qs = qs[:first]
+
+        return qs
+
+    def resolve_votes(self, info, **kwargs):
+        return Vote.objects.all()
 
 
 class Mutation(graphene.ObjectType):
