@@ -4,7 +4,6 @@ import django_filters
 from graphene import relay
 from django.contrib.auth import get_user_model
 from graphene_django import DjangoObjectType
-
 from graphene_django.filter import DjangoFilterConnectionField
 
 

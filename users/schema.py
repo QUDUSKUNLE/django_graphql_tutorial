@@ -15,12 +15,16 @@ class Query(graphene.ObjectType):
     users = graphene.List(UserType)
 
     def resolve_users(self, info):
+        user = info.context.user
+        if not user.is_superuser:
+            raise Exception('Not authorized to view this')
+    
         return get_user_model().objects.all()
 
     def resolve_me(self, info):
         user = info.context.user
-        if user.is_anonymous:
-            raise Exception('User not logged!')
+        if not user.is_authenticated:
+            return Exception('Authentication credentials were not provided')
 
         return user
 
